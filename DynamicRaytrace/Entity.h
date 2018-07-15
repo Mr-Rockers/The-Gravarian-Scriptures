@@ -6,20 +6,20 @@
 class Entity {
 protected:
 	int currentMapID; //The map ID of the current entity.
-	glm::dvec2 position; //The position of the entity.
+	glm::dvec3 position; //The position of the entity.
 	double yawAngles; //The angle of the entity in radians.
 	std::string name; //The identifying name of the entity.
 public:
 	Entity();
-	Entity(int mapID, glm::dvec2 position, double yawAngles, std::string name);
+	Entity(int mapID, glm::dvec3 position, double yawAngles, std::string name);
 
 	virtual int getCurrentMapID();
-	virtual glm::dvec2 getEntityPosition();
+	virtual glm::dvec3 getEntityPosition();
 	virtual double getYawAngles();
 	virtual std::string getEntityName();
 
 	virtual void setCurrentMapID(int id);
-	virtual void setEntityPosition(glm::dvec2 position, bool safe);
+	virtual void setEntityPosition(glm::dvec3 position, bool safe);
 	virtual void setYawAngles(double angle);
 	virtual void setEntityName(std::string name);
 	virtual void setEntityName(const char* name);
@@ -27,20 +27,24 @@ public:
 
 class EntityUpdate : public Entity{
 protected:
-	glm::dvec2 acceleration; //The current acceleration of the entity.
+	double moveSpeed;
+	double jumpProgress; //For internal use only.
+	glm::dvec3 currentSpeed; //The current currentSpeed of the entity.
 public:
 	EntityUpdate();
-	EntityUpdate(int mapID, glm::dvec2 position, double yawAngles, std::string name);
+	EntityUpdate(int mapID, glm::dvec3 position, double yawAngles, std::string name, double moveSpeed);
 
-	virtual glm::dvec2 getEntityAcceleration();
+	virtual glm::dvec3 getEntityAcceleration();
+	virtual double getMoveSpeed();
 
-	virtual void setEntityAcceleration(glm::dvec2 vector);
+	virtual void setEntitySpeed(glm::dvec3 vector);
+	virtual void setMoveSpeed(double moveSpeed);
 
-	virtual void accelerate(double yawAngles, double speed);
-	virtual void accelerate(glm::dvec2 vector);
+	virtual void addSpeed(double yawAngles, double speed);
+	virtual void addSpeed(glm::dvec3 vector);
 
 	virtual void update(double deltaTime);
-	virtual glm::dvec2 getNextPosition(double deltaTime);
+	virtual glm::dvec3 getNextPosition(double deltaTime);
 };
 
 class EntityLiving : public EntityUpdate {
@@ -49,7 +53,7 @@ protected:
 	std::string displayName; //The display name of the entity. (Not the same as the identifying name.)
 public:
 	EntityLiving();
-	EntityLiving(int mapID, glm::dvec2 position, double yawAngles, std::string name, int startHealth, int maxHealth, std::string displayName);
+	EntityLiving(int mapID, glm::dvec3 position, double yawAngles, std::string name, double moveSpeed, int startHealth, int maxHealth, std::string displayName);
 
 	virtual int getMaxHealth();
 	virtual int getHealth();
@@ -70,9 +74,10 @@ public:
 class EntityPlayer : public EntityLiving {
 public:
 	EntityPlayer();
-	EntityPlayer(int mapID, glm::dvec2 position, double yawAngles, std::string name, int startHealth, int maxHealth, std::string displayName);
+	EntityPlayer(int mapID, glm::dvec3 position, double yawAngles, std::string name, int startHealth, int maxHealth, std::string displayName);
 
 	virtual void update(double deltaTime);
+	virtual bool checkCollision(glm::dvec2 checkPos);
 };
 
 extern EntityPlayer LOCALPLAYER;

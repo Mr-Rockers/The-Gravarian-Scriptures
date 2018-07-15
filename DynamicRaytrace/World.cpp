@@ -12,6 +12,8 @@ glm::ivec4 Tile::renderColour() {
 		return glm::ivec4(255, 102, 0, 128);
 	}
 }
+
+//Is this tile transparent?
 bool Tile::isTransparent(){
 	switch (this->id) {
 	case TileID_BasicOpaque:
@@ -20,6 +22,8 @@ bool Tile::isTransparent(){
 		return true;
 	}
 }
+
+//NEEDS IMPLEMENTATION. Can other tiles of the same type render through this?
 bool Tile::allowsOverlap() {
 	switch (this->id) {
 	case TileID_BasicOpaque:
@@ -27,6 +31,27 @@ bool Tile::allowsOverlap() {
 	case TileID_BasicTransparent:
 		return false;
 	}
+}
+
+//Should the engine prevent the player walking through this?
+bool Tile::isSolid(){
+	switch (this->id) {
+	case TileID_BasicOpaque:
+		return true;
+	case TileID_BasicTransparent:
+		return false;
+	}
+}
+
+//Should the engine prevent the player falling through this?
+bool Tile::hasFloor(){
+	if (!this->isSolid()) {
+		switch (this->id) {
+		case TileID_BasicTransparent:
+			return false;
+		}
+	}
+	return true;
 }
 
 int WorldInit() {

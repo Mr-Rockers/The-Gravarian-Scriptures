@@ -87,7 +87,7 @@ void RenderUpdate() {
 
 				
 				traceRect.h = rectHeight;
-				traceRect.y = (RENDER_HEIGHT - traceRect.h) / 2;
+				traceRect.y = (RENDER_HEIGHT - traceRect.h) / 2 + (int)((double)traceRect.h * LOCALPLAYER.getEntityPosition().z);
 
 				SDL_SetRenderDrawColor(RENDER_RENDERER, tile->renderColour().r, tile->renderColour().g, tile->renderColour().b, rectTransparency);
 				SDL_RenderFillRect(RENDER_RENDERER, &traceRect);

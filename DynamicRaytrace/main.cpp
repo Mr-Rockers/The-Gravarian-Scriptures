@@ -14,9 +14,14 @@ SDL_Renderer* RENDER_RENDERER = nullptr;
 unsigned int RENDER_WIDTH = 1280, RENDER_HEIGHT = 720, RENDER_RESOLUTION = 4;
 double RENDER_FOV = 70.0 * (M_PI / 180.0), RENDER_DISTANCE = 22.7;
 
-EntityPlayer LOCALPLAYER = EntityPlayer(0, glm::dvec2(8.0, 8.0), M_PI / 2.0, std::string("entityliving.localplayer"), 100, 100, std::string("localplayer"));
+EntityPlayer LOCALPLAYER = EntityPlayer(0, glm::dvec3(8.0, 8.0, 0.0), M_PI / 2.0, std::string("entityliving.localplayer"), 100, 100, std::string("localplayer"));
 
-bool INPUT_LOCKMOUSE = true, INPUT_FORWARD = false, INPUT_BACKWARD = false, INPUT_LEFT = false, INPUT_RIGHT = false;
+bool	INPUT_LOCKMOUSE = true, 
+		INPUT_JUMP = false,
+		INPUT_FORWARD = false,
+		INPUT_BACKWARD = false,
+		INPUT_LEFT = false,
+		INPUT_RIGHT = false;
 
 int main(int argc, char** argv) {
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {

@@ -10,6 +10,9 @@ bool InputUpdate() {
 		}
 
 		if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
+			if (e.key.keysym.scancode == SDL_SCANCODE_SPACE) {
+				INPUT_JUMP = e.type == SDL_KEYDOWN;
+			}
 			if (e.key.keysym.scancode == SDL_SCANCODE_W) {
 				INPUT_FORWARD = e.type == SDL_KEYDOWN;
 			}

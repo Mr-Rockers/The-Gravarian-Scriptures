@@ -3,17 +3,17 @@
 #include "Input.h"
 #include "World.h"
 
-Entity::Entity(int mapID, glm::dvec2 position, double yawAngles, std::string name) :
+Entity::Entity(int mapID, glm::dvec3 position, double yawAngles, std::string name) :
 currentMapID(mapID), position(position), yawAngles(yawAngles), name(name){}
 
-Entity::Entity() : Entity(-1, glm::dvec2(0.0, 0.0), 0.0, std::string("entity.unspecified")) {}
+Entity::Entity() : Entity(-1, glm::dvec3(0.0, 0.0, 0.0), 0.0, std::string("entity.unspecified")) {}
 
 
 int Entity::getCurrentMapID() {
 	return this->currentMapID;
 }
 
-glm::dvec2 Entity::getEntityPosition() {
+glm::dvec3 Entity::getEntityPosition() {
 	return this->position;
 }
 
@@ -29,7 +29,7 @@ void Entity::setCurrentMapID(int id) {
 	this->currentMapID = id;
 }
 
-void Entity::setEntityPosition(glm::dvec2 position, bool safe) {
+void Entity::setEntityPosition(glm::dvec3 position, bool safe) {
 	this->position = position;
 }
 
@@ -46,51 +46,56 @@ void Entity::setEntityName(const char* name) {
 	this->name = std::string(name);
 }
 
-EntityUpdate::EntityUpdate(int mapID, glm::dvec2 position, double yawAngles, std::string name):
-	Entity(mapID, position, yawAngles, name), acceleration(glm::dvec2(0.0, 0.0)){}
-EntityUpdate::EntityUpdate() : EntityUpdate(-1, glm::dvec2(0.0, 0.0), 0.0, std::string("entityupdate.unspecified")) {}
+EntityUpdate::EntityUpdate(int mapID, glm::dvec3 position, double yawAngles, std::string name, double moveSpeed):
+	Entity(mapID, position, yawAngles, name), currentSpeed(glm::dvec3(0.0, 0.0, 0.0)), moveSpeed(moveSpeed){}
+EntityUpdate::EntityUpdate() : EntityUpdate(-1, glm::dvec3(0.0, 0.0, 0.0), 0.0, std::string("entityupdate.unspecified"), 0.0) {}
 
-glm::dvec2 EntityUpdate::getEntityAcceleration() {
-	return this->acceleration;
+glm::dvec3 EntityUpdate::getEntityAcceleration() {
+	return this->currentSpeed;
 }
 
-void EntityUpdate::setEntityAcceleration(glm::dvec2 vector){
-	this->acceleration = vector;
+double EntityUpdate::getMoveSpeed(){
+	return this->moveSpeed;
 }
 
-void EntityUpdate::accelerate(double yawAngles, double speed) {
-	this->acceleration.x += sin(yawAngles) * speed;
-	this->acceleration.y += cos(yawAngles) * speed;
+void EntityUpdate::setEntitySpeed(glm::dvec3 vector){
+	this->currentSpeed = vector;
 }
 
-void EntityUpdate::accelerate(glm::dvec2 vector) {
-	this->acceleration += vector;
+void EntityUpdate::setMoveSpeed(double moveSpeed) {
+	this->moveSpeed = moveSpeed;
+}
+
+void EntityUpdate::addSpeed(double yawAngles, double speed) {
+	this->currentSpeed.x += sin(yawAngles) * speed;
+	this->currentSpeed.y += cos(yawAngles) * speed;
+}
+
+void EntityUpdate::addSpeed(glm::dvec3 vector) {
+	this->currentSpeed += vector;
 }
 
 void EntityUpdate::update(double deltaTime) {
-	this->position += this->acceleration * deltaTime;
+	this->position += this->currentSpeed * deltaTime;
 }
 
-glm::dvec2 EntityUpdate::getNextPosition(double deltaTime) {
-	return this->position + this->acceleration * deltaTime;
+glm::dvec3 EntityUpdate::getNextPosition(double deltaTime) {
+	return this->position + this->currentSpeed * deltaTime;
 }
 
-EntityLiving::EntityLiving(int mapID, glm::dvec2 position, double yawAngles, std::string name, int startHealth, int maxHealth, std::string displayName) :
-EntityUpdate(mapID, position, yawAngles, name), currentHealth(startHealth), maxHealth(maxHealth), displayName(displayName){}
-EntityLiving::EntityLiving() : EntityLiving(-1, glm::dvec2(0.0,0.0), 0.0, std::string("entityliving.unspecified"), 0, 0, std::string("Unspecified EntityLiving")) {}
+EntityLiving::EntityLiving(int mapID, glm::dvec3 position, double yawAngles, std::string name, double moveSpeed, int startHealth, int maxHealth, std::string displayName) :
+EntityUpdate(mapID, position, yawAngles, name, moveSpeed), currentHealth(startHealth), maxHealth(maxHealth), displayName(displayName){}
+EntityLiving::EntityLiving() : EntityLiving(-1, glm::dvec3(0.0,0.0,0.0), 0.0, std::string("entityliving.unspecified"), 0.0, 0, 0, std::string("Unspecified EntityLiving")) {}
 
-int EntityLiving::getMaxHealth()
-{
+int EntityLiving::getMaxHealth() {
 	return this->maxHealth;
 }
 
-int EntityLiving::getHealth()
-{
+int EntityLiving::getHealth() {
 	return this->currentHealth;
 }
 
-std::string EntityLiving::getDisplayName()
-{
+std::string EntityLiving::getDisplayName() {
 	return this->displayName;
 }
 
@@ -118,44 +123,90 @@ bool EntityLiving::isDead(){
 	return currentHealth <= 0;
 }
 
-EntityPlayer::EntityPlayer(int mapID, glm::dvec2 position, double yawAngles, std::string name, int startHealth, int maxHealth, std::string displayName) :
-EntityLiving(mapID, position, yawAngles, name, startHealth, maxHealth, displayName){}
+EntityPlayer::EntityPlayer(int mapID, glm::dvec3 position, double yawAngles, std::string name, int startHealth, int maxHealth, std::string displayName) :
+EntityLiving(mapID, position, yawAngles, name, 2.0, startHealth, maxHealth, displayName){}
 EntityPlayer::EntityPlayer() :
-EntityPlayer(-1, glm::dvec2(0.0, 0.0), 0.0, std::string("entityplayer.unspecified"), 0, 0, std::string("Unspecified EntityPlayer")){}
+EntityPlayer(-1, glm::dvec3(0.0, 0.0, 0.0), 0.0, std::string("entityplayer.unspecified"), 0, 0, std::string("Unspecified EntityPlayer")){}
 
 void EntityPlayer::update(double deltaTime) {
-	LOCALPLAYER.setEntityAcceleration(glm::dvec2(0.0, 0.0));
-	double playerSpeed = 2.0;
+	LOCALPLAYER.setEntitySpeed(glm::dvec3(0.0, 0.0, 0.0));
 
+	bool startJump = false;
+	if (INPUT_JUMP) {
+		if (this->getEntityPosition().z <= WORLD_HEIGHT && this->jumpProgress == 0.0) {
+			startJump = true;
+		}
+	}
 	if (INPUT_FORWARD) {
-		LOCALPLAYER.accelerate(LOCALPLAYER.getYawAngles(), playerSpeed);
+		LOCALPLAYER.addSpeed(LOCALPLAYER.getYawAngles(), this->getMoveSpeed());
 	}
 	if (INPUT_BACKWARD) {
-		LOCALPLAYER.accelerate(LOCALPLAYER.getYawAngles(), -playerSpeed);
+		LOCALPLAYER.addSpeed(LOCALPLAYER.getYawAngles(), -this->getMoveSpeed());
 	}
 	if (INPUT_LEFT) {
-		LOCALPLAYER.accelerate(LOCALPLAYER.getYawAngles() - M_PI / 2, playerSpeed);
+		LOCALPLAYER.addSpeed(LOCALPLAYER.getYawAngles() - M_PI / 2, this->getMoveSpeed());
 	}
 	if (INPUT_RIGHT) {
-		LOCALPLAYER.accelerate(LOCALPLAYER.getYawAngles() + M_PI / 2, playerSpeed);
+		LOCALPLAYER.addSpeed(LOCALPLAYER.getYawAngles() + M_PI / 2, this->getMoveSpeed());
 	}
 
 	//basic collision detection
-	glm::dvec2 nextPosition = LOCALPLAYER.getNextPosition(deltaTime);
-	for (int i = 0; i < WORLD_MAPARRAYSIZE; i++) {
-		//if player will accelerate within bounds of WORLD_MAP
-		if ((int)nextPosition.x >= 0 && (int)nextPosition.x <= WORLD_MAPSIZE &&
-			(int)nextPosition.y >= 0 && (int)nextPosition.y <= WORLD_MAPSIZE) {
-			//if player will accelerate into solid tile
-			if (WORLD_MAP[(int)(nextPosition.x)][(int)(nextPosition.y)] > 0) {
-				LOCALPLAYER.setEntityAcceleration(glm::dvec2(0.0, 0.0));
+	glm::dvec2 nextPosition = glm::dvec2(LOCALPLAYER.getNextPosition(deltaTime));
+	glm::dvec2 oldPosition = glm::dvec2(LOCALPLAYER.getEntityPosition());
+
+	//if player will move within bounds of WORLD_MAP
+	if ((int)nextPosition.x < 0 && (int)nextPosition.x > WORLD_MAPSIZE &&
+		(int)nextPosition.y < 0 && (int)nextPosition.y > WORLD_MAPSIZE) {
+		LOCALPLAYER.setEntitySpeed(glm::dvec3(0.0, 0.0, 0.0));
+	}
+	
+	bool horizontalAllowed = true, verticalAllowed = true;
+	if (LOCALPLAYER.checkCollision(glm::dvec2(nextPosition))) {
+
+		//Check if we can move horizonally
+		glm::dvec2 checkPosition = glm::dvec2(nextPosition.x, oldPosition.y);
+		horizontalAllowed = (!LOCALPLAYER.checkCollision(checkPosition));
+		//Check if we can move vertically
+		checkPosition = glm::dvec2(oldPosition.x, nextPosition.y);
+		verticalAllowed = (!LOCALPLAYER.checkCollision(checkPosition));
+
+	}
+
+	//do jump calculation
+	if (startJump || jumpProgress > 0.0) {
+		jumpProgress += deltaTime * 5.0;
+		startJump = false;
+	}
+	if (jumpProgress > M_PI) {
+		jumpProgress = 0.0;
+	}
+
+	LOCALPLAYER.setEntityPosition(glm::dvec3(oldPosition.x, oldPosition.y, WORLD_HEIGHT + sin(jumpProgress) * 0.5), false);
+
+	EntityUpdate::update(deltaTime);
+	
+	//After position has been updated, correct if the player can move hor/ver or not.
+	glm::dvec3 updatedPosition = LOCALPLAYER.getEntityPosition();
+	LOCALPLAYER.setEntityPosition(glm::dvec3(
+		horizontalAllowed ? updatedPosition.x : oldPosition.x,
+		verticalAllowed ? updatedPosition.y : oldPosition.y,
+		updatedPosition.z), false);
+}
+
+bool EntityPlayer::checkCollision(glm::dvec2 checkPos) {
+
+	for (int x = 0; x < WORLD_MAPSIZE; x++) {
+		for (int y = 0; y < WORLD_MAPSIZE; y++) {
+			if (WORLD_MAP[x][y] != nullptr) {
+				if (WORLD_MAP[x][y]->isSolid()) {
+					if (checkPos.x >= (double)x && checkPos.x <= (double)x + 1.0 &&
+						checkPos.y >= (double)y && checkPos.y <= (double)y + 1.0) {
+						return true;
+					}
+				}
 			}
-		}
-		else { //otherwise stop the player leaving the WORLD_MAP for now
-			   ///Here, we should have the logic for moving the player into a new chunk, but that is a whole other beast to tackle.
-			LOCALPLAYER.setEntityAcceleration(glm::dvec2(0.0, 0.0));
 		}
 	}
 
-	EntityUpdate::update(deltaTime);
+	return false;
 }
