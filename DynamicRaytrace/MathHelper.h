@@ -4,7 +4,7 @@
 #include "Includes.h"
 
 //Applies the angles to be within bounds of 0 and 2 PI.
-void WrapAngles(double* angleIn) {
+static void WrapAngles(double* angleIn) {
 
 	//unsigned int order = (int)(*angleIn * M_PI / 180.0) % 360;
 
@@ -17,7 +17,7 @@ void WrapAngles(double* angleIn) {
 }
 
 //Applies the angles to be within bounds of 0 and 360.
-void WrapAnglesDegrees(double* angleIn) {
+static void WrapAnglesDegrees(double* angleIn) {
 
 	//unsigned int order = (int)(*angleIn) % 360;
 
