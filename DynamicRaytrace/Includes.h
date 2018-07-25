@@ -3,6 +3,7 @@
 
 //external libraries
 #include <SDL.h>
+#include <SDL_image.h>
 #include <glm\glm.hpp>
 
 //standard libraries

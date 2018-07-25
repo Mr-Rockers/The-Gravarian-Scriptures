@@ -10,8 +10,10 @@ const double WORLD_GRAVITATIONALPULL = -9.8, WORLD_HEIGHT = 0.0; //Placeholder v
 enum TileID { TileID_BasicOpaque, TileID_BasicTransparent };
 
 struct Tile {
-	TileID id;
 	double distanceToPlayer; //Only used during rendering.
+	int coordX, coordY; //Only used during rendering.
+
+	TileID id;
 
 	Tile();
 	Tile(TileID id);
