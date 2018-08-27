@@ -19,6 +19,10 @@ SDL_Colour GetColour(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
 extern SDL_Window* RENDER_WINDOW;
 extern SDL_Renderer* RENDER_RENDERER;
 
+extern SDL_Texture* RENDER_TEX_SURFACE;
+extern SDL_Texture* RENDER_TEX_BUMP;
+extern SDL_Texture* RENDER_TEX_UI;
+
 extern unsigned int RENDER_WIDTH, RENDER_HEIGHT, RENDER_RESOLUTION;
 extern double RENDER_FOV, RENDER_DISTANCE;
 

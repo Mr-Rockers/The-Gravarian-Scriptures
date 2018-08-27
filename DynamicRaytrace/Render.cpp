@@ -5,6 +5,7 @@
 Texture RENDER_TEXTURE_WALL;
 
 int RenderInit() {
+
 	//Initialise SDL_image. (Error otherwise.)
 	int imgInitFlags = IMG_INIT_PNG;
 	if (IMG_Init(imgInitFlags) != imgInitFlags) {
@@ -12,7 +13,7 @@ int RenderInit() {
 	}
 
 	//Initialise the main window. (Error otherwise.)
-	RENDER_WINDOW = SDL_CreateWindow("Dynamic Raytracer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_SHOWN);
+	RENDER_WINDOW = SDL_CreateWindow("Dynamic Raytracer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, RENDER_WIDTH, RENDER_HEIGHT, SDL_WINDOW_SHOWN);
 	if (RENDER_WINDOW == nullptr) {
 		return -1;
 	}
@@ -22,6 +23,10 @@ int RenderInit() {
 	if (RENDER_RENDERER == nullptr) {
 		return -1;
 	}
+
+	RENDER_TEX_SURFACE = SDL_CreateTexture(RENDER_RENDERER, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, RENDER_WIDTH, RENDER_HEIGHT);
+	RENDER_TEX_BUMP = SDL_CreateTexture(RENDER_RENDERER, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, RENDER_WIDTH, RENDER_HEIGHT);
+	RENDER_TEX_UI = SDL_CreateTexture(RENDER_RENDERER, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, RENDER_WIDTH, RENDER_HEIGHT);
 
 	//Set renderer variables.
 	SDL_SetRenderDrawBlendMode(RENDER_RENDERER, SDL_BLENDMODE_BLEND);
@@ -36,16 +41,24 @@ void RenderUpdate() {
 	double playerYaw = LOCALPLAYER.getYawAngles();
 
 	//Render
-	SDL_SetRenderDrawColor(RENDER_RENDERER, 190, 220, 240, 255);
-	SDL_RenderClear(RENDER_RENDERER);
+	SDL_SetRenderTarget(RENDER_RENDERER, RENDER_TEX_SURFACE);
+		SDL_SetRenderDrawColor(RENDER_RENDERER, 190, 220, 240, 255);
+		SDL_RenderClear(RENDER_RENDERER);
+	SDL_SetRenderTarget(RENDER_RENDERER, RENDER_TEX_BUMP);
+		SDL_SetRenderDrawColor(RENDER_RENDERER, 0, 0, 0, 255);
+		SDL_RenderClear(RENDER_RENDERER);
+	SDL_SetRenderTarget(RENDER_RENDERER, RENDER_TEX_UI);
+		SDL_SetRenderDrawColor(RENDER_RENDERER, 0, 0, 0, 0);
+		SDL_SetTextureBlendMode(RENDER_TEX_UI, SDL_BLENDMODE_BLEND);
+		SDL_RenderClear(RENDER_RENDERER);
 
 	//render raytrace
 	int maxXTraces = RENDER_WIDTH / RENDER_RESOLUTION;
 	int maxYTraces = RENDER_HEIGHT / RENDER_RESOLUTION;
 
-	for (int yTrace = 0; yTrace < maxYTraces; yTrace++) {
+	/*for (int yTrace = 0; yTrace < maxYTraces; yTrace++) {
 
-	}
+	}*/
 
 	for (int xTrace = 0; xTrace < maxXTraces; xTrace++) {
 		double rayAngle = (playerYaw - RENDER_FOV / 2.0) + ((double)xTrace / (double)maxXTraces) * RENDER_FOV;
@@ -103,7 +116,7 @@ void RenderUpdate() {
 				Tile* tile = hits.at(i);
 				rayDistance = tile->distanceToPlayer * distortionFix;
 
-				int rectHeight = (int)((float)RENDER_HEIGHT / rayDistance), rectTransparency = (int)(tile->renderColour().a / (rayDistance / 4.0));
+				int rectHeight = (int)((float)RENDER_HEIGHT / rayDistance), rectTransparency = (int)(tile->renderColour().a / ((rayDistance) * 2)) * 4; //Out of 255 units.
 				if (rectHeight > RENDER_HEIGHT) {
 					rectHeight = RENDER_HEIGHT;
 				}
@@ -111,17 +124,16 @@ void RenderUpdate() {
 					rectTransparency = tile->renderColour().a;
 				}
 				traceRect.h = rectHeight;
-				traceRect.y = (RENDER_HEIGHT - traceRect.h) / 2 + (int)((double)traceRect.h * LOCALPLAYER.getEntityPosition().z);
+				traceRect.y = (RENDER_HEIGHT - rectHeight) / 2;
 
+
+				traceRect.y += (int)((double)traceRect.h * LOCALPLAYER.getEntityPosition().z); //Render Jump/Player Height
 
 				//Get Texture X Sample
 				double centreOfTileX = (double)(tile->coordX) + 0.5;
 				double centreOfTileY = (double)(tile->coordY) + 0.5;
 				double accurateCoordX = (playerPosition.x + rayDirX * tile->distanceToPlayer);
 				double accurateCoordY = (playerPosition.y + rayDirY * tile->distanceToPlayer);
-
-
-				
 
 				double hitToCentreAngle = atan2((accurateCoordY - centreOfTileY), (accurateCoordX - centreOfTileX));
 
@@ -141,12 +153,18 @@ void RenderUpdate() {
 				texRect.w = 1;
 				texRect.h = 128;
 				texRect.x = (int)(128.0 * sampleX);
-				texRect.y = 0;
+				texRect.y = (128 - texRect.h) / 2;
+
 
 				//SDL_SetRenderDrawColor(RENDER_RENDERER, tile->renderColour().r, tile->renderColour().g, tile->renderColour().b, rectTransparency);
 				//SDL_RenderFillRect(RENDER_RENDERER, &traceRect);
 
 				//SDL_SetRenderDrawColor(RENDER_RENDERER, 255, 255, 255, 255);
+				SDL_SetRenderTarget(RENDER_RENDERER, RENDER_TEX_SURFACE);
+				SDL_SetTextureAlphaMod(RENDER_TEXTURE_WALL.getSurface(), rectTransparency);
+				SDL_RenderCopy(RENDER_RENDERER, RENDER_TEXTURE_WALL.getSurface(), &texRect, &traceRect);
+
+				SDL_SetRenderTarget(RENDER_RENDERER, RENDER_TEX_BUMP);
 				SDL_SetTextureAlphaMod(RENDER_TEXTURE_WALL.getBump(), rectTransparency);
 				SDL_RenderCopy(RENDER_RENDERER, RENDER_TEXTURE_WALL.getBump(), &texRect, &traceRect);
 
@@ -155,6 +173,7 @@ void RenderUpdate() {
 	}
 
 	//render terrain map
+	SDL_SetRenderTarget(RENDER_RENDERER, RENDER_TEX_UI);
 	SDL_Rect currentMapBackground;
 	currentMapBackground.w = WORLD_MAPSIZE * 10;
 	currentMapBackground.h = WORLD_MAPSIZE * 10;
@@ -194,6 +213,9 @@ void RenderUpdate() {
 	SDL_SetRenderDrawColor(RENDER_RENDERER, 0, 0, 255, 128);
 	SDL_RenderDrawLine(RENDER_RENDERER, (playerPosition.x * 10), (playerPosition.y * 10), playerLookPointX, playerLookPointY);
 
+	SDL_SetRenderTarget(RENDER_RENDERER, NULL);
+	SDL_RenderCopy(RENDER_RENDERER, RENDER_TEX_SURFACE, NULL, NULL);
+	SDL_RenderCopy(RENDER_RENDERER, RENDER_TEX_UI, NULL, NULL);
 	SDL_RenderPresent(RENDER_RENDERER);
 }
 

@@ -195,12 +195,13 @@ void EntityPlayer::update(double deltaTime) {
 
 bool EntityPlayer::checkCollision(glm::dvec2 checkPos) {
 
+	double cushionFactor = 0.2;
 	for (int x = 0; x < WORLD_MAPSIZE; x++) {
 		for (int y = 0; y < WORLD_MAPSIZE; y++) {
 			if (WORLD_MAP[x][y] != nullptr) {
 				if (WORLD_MAP[x][y]->isSolid()) {
-					if (checkPos.x >= (double)x && checkPos.x <= (double)x + 1.0 &&
-						checkPos.y >= (double)y && checkPos.y <= (double)y + 1.0) {
+					if (checkPos.x >= (double)x - cushionFactor && checkPos.x <= (double)x + 1.0 + cushionFactor &&
+						checkPos.y >= (double)y - cushionFactor && checkPos.y <= (double)y + 1.0 + cushionFactor) {
 						return true;
 					}
 				}

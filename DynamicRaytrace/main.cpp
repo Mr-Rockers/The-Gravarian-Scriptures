@@ -11,7 +11,10 @@ Tile* WORLD_MAP[WORLD_MAPSIZE][WORLD_MAPSIZE] = { nullptr };
 
 SDL_Window* RENDER_WINDOW = nullptr;
 SDL_Renderer* RENDER_RENDERER = nullptr;
-unsigned int RENDER_WIDTH = 1280, RENDER_HEIGHT = 720, RENDER_RESOLUTION = 2;
+SDL_Texture* RENDER_TEX_SURFACE = nullptr;
+SDL_Texture* RENDER_TEX_BUMP = nullptr;
+SDL_Texture* RENDER_TEX_UI = nullptr;
+unsigned int RENDER_WIDTH = 1280, RENDER_HEIGHT = 720, RENDER_RESOLUTION = 4;
 double RENDER_FOV = 70.0 * (M_PI / 180.0), RENDER_DISTANCE = 22.7;
 
 EntityPlayer LOCALPLAYER = EntityPlayer(0, glm::dvec3(8.0, 8.0, 0.0), M_PI / 2.0, std::string("entityliving.localplayer"), 100, 100, std::string("localplayer"));
